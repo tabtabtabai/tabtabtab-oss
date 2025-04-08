@@ -2,6 +2,7 @@ import abc
 from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass
 
+
 @dataclass
 class CopyResponse:
     """
@@ -14,15 +15,18 @@ class CopyResponse:
                        longer-running background task related to this copy event.
                        Defaults to False.
     """
+
     notification_title: Optional[str] = None
     notification_detail: Optional[str] = None
     is_processing_task: bool = False
+
 
 @dataclass
 class PasteResponse:
     """
     Response object returned by the on_paste method.
     """
+
     notification_title: Optional[str] = None
     notification_detail: Optional[str] = None
     paste_content: Optional[str] = None
@@ -35,18 +39,18 @@ class PasteResponse:
         return self.paste_content is not None or self.is_processing_task
 
 
-
-
 @dataclass
 class OnContextResponse:
     """
     Response object returned by the on_context_request method.
     """
+
     @dataclass
     class ExtensionContext:
         """
         Object to describe the context provided by an extension.
         """
+
         description: str
         context: str
 

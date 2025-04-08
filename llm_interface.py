@@ -3,10 +3,12 @@ from typing import List, Union, AsyncGenerator, Dict, Any, Optional
 from dataclasses import dataclass
 from open_sourced.llm import LLMModel
 
+
 @dataclass
 class LLMContext:
     image: Optional[bytes] = None
     text: Optional[str] = None
+
 
 class LLMProcessorInterface(abc.ABC):
     """
@@ -50,4 +52,4 @@ class LLMProcessorInterface(abc.ABC):
         pass
 
     # Potentially add other methods if extensions need more specific LLM interactions,
-    # e.g., get_embeddings, specific tool usage, etc. 
+    # e.g., get_embeddings, specific tool usage, etc.

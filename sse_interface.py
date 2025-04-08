@@ -1,6 +1,7 @@
 import abc
 from typing import Dict, Any
 
+
 class SSESenderInterface(abc.ABC):
     """
     Abstract Base Class defining the interface for sending Server-Sent Events (SSE).
@@ -9,7 +10,9 @@ class SSESenderInterface(abc.ABC):
     """
 
     @abc.abstractmethod
-    async def send_event(self, device_id: str, event_name: str, data: Dict[str, Any]) -> None:
+    async def send_event(
+        self, device_id: str, event_name: str, data: Dict[str, Any]
+    ) -> None:
         """
         Sends an event payload to a specific device's SSE connection.
 
@@ -20,4 +23,4 @@ class SSESenderInterface(abc.ABC):
                   will typically be serialized (e.g., to JSON) by the
                   concrete implementation before sending.
         """
-        pass 
+        pass
