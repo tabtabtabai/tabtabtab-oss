@@ -276,30 +276,57 @@ class SampleExtension(ExtensionInterface):
             is_processing_task = False
         )
 
+    async def _long_running_task(self, device_id: str, request_id: str) -> None:
+        log.info(f"[{self.extension_id}][Req:{request_id}] Starting long running task.")
+        await asyncio.sleep(10)
+        log.info(f"[{self.extension_id}][Req:{request_id}] Long running task completed.")
+        
+        # Modify notification based on whether screenshot was also present?
+        # Send notification via SSE after task completes
+        await self._send_sse_notification(
+            device_id=device_id,
+            request_id=request_id,
+            message="The long running task has completed! This is an example of sending a notification back to the client after background processing finishes. Extensions can use this to provide updates on their progress or results.",
+            status="success",
+            details={
+                "completion_time": "10 seconds",
+                "task_type": "background_paste_processing"
+            }
+        )
 
-    def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
+
+    async def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
         """
         Handles paste events by logging context and returning a response object.
         """
         log.info(f"[{self.extension_id}] on_paste triggered.")
         log.info(f"[{self.extension_id}] Context: {context}")
 
-        paste_content: Optional[str] = None
-        notification: Optional[str] = None
-        target_app = context.get("target_application")
+        device_id = context.get("device_id")
+        request_id = context.get("request_id")
 
-        if target_app == "MyNoteApp":
-            paste_content = f"Pasted from SampleExtension! (API Key Present: {bool(self.api_key)})"
-            notification = "Pasting content from SampleExtension."
-            log.info(f"[{self.extension_id}] Providing paste content: '{paste_content}'")
-        else:
-            notification = f"SampleExtension ignored paste in {target_app}."
-            log.info(
-                f"[{self.extension_id}] Not handling paste for application: {target_app}. "
-                f"Paste context keys: {list(context.keys())}"
+        
+
+        # example of doing a long running task
+        try:
+            asyncio.create_task(
+                self._long_running_task(device_id, request_id)
             )
+            log.info(f"[{self.extension_id}][Req:{request_id}] Background task created successfully.")
+            
+        except Exception as e:
+                log.error(f"[{self.extension_id}][Req:{request_id}] Failed to create background task: {e}", exc_info=True)
+                return PasteResponse(
+                notification_title = f"Internal error",
+                notification_detail = f"Failed to create background task: {e}",
+                is_processing_task = False
+                )
 
-        return PasteResponse(paste_content=paste_content, notification_message=notification)
+        return PasteResponse(
+            notification_title="Request received",
+            notification_detail="Starting background paste task...",
+            is_processing_task=True
+        )
 
     def get_status(self) -> Dict[str, Any]:
         """

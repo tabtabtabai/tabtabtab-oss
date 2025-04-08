@@ -23,8 +23,17 @@ class PasteResponse:
     """
     Response object returned by the on_paste method.
     """
+    notification_title: Optional[str] = None
+    notification_detail: Optional[str] = None
     paste_content: Optional[str] = None
-    notification_message: Optional[str] = None
+    is_processing_task: bool = False
+
+    def is_accepted(self) -> bool:
+        """
+        Returns True if the paste request is accepted by the extension.
+        """
+        return self.paste_content is not None or self.is_processing_task
+
 
 class ExtensionInterface(abc.ABC):
     """
@@ -104,7 +113,7 @@ class ExtensionInterface(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
+    async def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
         """
         Handles a 'paste' event triggered by the user, potentially modifying
         or providing the content to be pasted.
