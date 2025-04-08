@@ -185,17 +185,30 @@ class SampleExtension(ExtensionInterface):
             await self._send_sse_notification(device_id, request_id, f"An error occurred during AI analysis: {e}", status="error")
         # --- End LLM Integration ---
 
-    def on_context_request(
+    async def on_context_request(
         self, source_extension_id: str, context_query: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Handles context requests by logging the request.
+        Asynchronously handles context requests by logging the request
+        and returning some sample data.
         """
         log.info(
-            f"[{self.extension_id}] Received context request from "
-            f"'{source_extension_id}' with query: {context_query}"
+            f"[{self.extension_id}] Received async context request from "
+            f"'{source_extension_id}'"
         )
-        return {}
+        # Simulate potential async work if needed
+        await asyncio.sleep(0.01) # Simulate a tiny bit of async work
+
+        # Example: Return context based on the query if needed
+        # if context_query.get("mode") == "some_mode":
+        #    return {"special_mode_data": "value"}
+
+        return {
+            "some_context_key": "some_context_value_async", # Indicate async origin
+            "some_other_context_key": {
+                "some_nested_key": "some_nested_value_async"
+            }
+        }
 
 
     async def on_copy(self, context: Dict[str, Any]) -> CopyResponse:
@@ -276,7 +289,7 @@ class SampleExtension(ExtensionInterface):
             is_processing_task = False
         )
 
-    async def _long_running_task(self, device_id: str, request_id: str) -> None:
+    async def _long_running_task(self, device_id: str, request_id: str, extensions_context: Dict[str, Any]) -> None:
         log.info(f"[{self.extension_id}][Req:{request_id}] Starting long running task.")
         await asyncio.sleep(10)
         log.info(f"[{self.extension_id}][Req:{request_id}] Long running task completed.")
@@ -290,7 +303,8 @@ class SampleExtension(ExtensionInterface):
             status="success",
             details={
                 "completion_time": "10 seconds",
-                "task_type": "background_paste_processing"
+                "task_type": "background_paste_processing",
+                "extensions_context": extensions_context
             }
         )
 
@@ -300,17 +314,15 @@ class SampleExtension(ExtensionInterface):
         Handles paste events by logging context and returning a response object.
         """
         log.info(f"[{self.extension_id}] on_paste triggered.")
-        log.info(f"[{self.extension_id}] Context: {context}")
 
         device_id = context.get("device_id")
         request_id = context.get("request_id")
-
-        
+        extensions_context = context.get("extensions_context", {})
 
         # example of doing a long running task
         try:
             asyncio.create_task(
-                self._long_running_task(device_id, request_id)
+                self._long_running_task(device_id, request_id, extensions_context)
             )
             log.info(f"[{self.extension_id}][Req:{request_id}] Background task created successfully.")
             
@@ -324,7 +336,7 @@ class SampleExtension(ExtensionInterface):
 
         return PasteResponse(
             notification_title="Request received",
-            notification_detail="Starting background paste task...",
+            notification_detail="Starting background paste task. Extension Context: " + str(context.get("extensions_context")),
             is_processing_task=True
         )
 
