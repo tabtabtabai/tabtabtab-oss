@@ -23,8 +23,17 @@ class PasteResponse:
     """
     Response object returned by the on_paste method.
     """
+    notification_title: Optional[str] = None
+    notification_detail: Optional[str] = None
     paste_content: Optional[str] = None
-    notification_message: Optional[str] = None
+    is_processing_task: bool = False
+
+    def is_accepted(self) -> bool:
+        """
+        Returns True if the paste request is accepted by the extension.
+        """
+        return self.paste_content is not None or self.is_processing_task
+
 
 class ExtensionInterface(abc.ABC):
     """
@@ -85,19 +94,26 @@ class ExtensionInterface(abc.ABC):
         background tasks, prepare data, or interact with external services.
 
         Args:
-            context: A dictionary containing information about the copy event,
-                     such as the copied content, the source application,
-                     active URL, etc. The exact structure depends on the
-                     information provided by the client/framework.
+            context: A dictionary containing information about the copy event.
+                     Common keys include:
+                     - 'device_id': str
+                     - 'session_id': str
+                     - 'request_id': str
+                     - 'timestamp': str (ISO format UTC)
+                     - 'metadata': Dict[str, Any] (original metadata from client)
+                     - 'window_info': Dict[str, Any] (parsed window info)
+                     - 'screenshot_provided': bool
+                     - 'selected_text': Optional[str]
+                     - 'screenshot_data': Optional[bytes] (Raw image data if screenshot_provided is True)
 
         Returns:
             A CopyResponse object, potentially containing a message to notify
-            the user.
+            the user and indicating if a background task was started.
         """
         pass
 
     @abc.abstractmethod
-    def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
+    async def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
         """
         Handles a 'paste' event triggered by the user, potentially modifying
         or providing the content to be pasted.
