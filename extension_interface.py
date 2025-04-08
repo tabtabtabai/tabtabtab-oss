@@ -1,6 +1,7 @@
 import abc
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass
+
 
 @dataclass
 class CopyResponse:
@@ -14,15 +15,18 @@ class CopyResponse:
                        longer-running background task related to this copy event.
                        Defaults to False.
     """
+
     notification_title: Optional[str] = None
     notification_detail: Optional[str] = None
     is_processing_task: bool = False
+
 
 @dataclass
 class PasteResponse:
     """
     Response object returned by the on_paste method.
     """
+
     notification_title: Optional[str] = None
     notification_detail: Optional[str] = None
     paste_content: Optional[str] = None
@@ -33,6 +37,24 @@ class PasteResponse:
         Returns True if the paste request is accepted by the extension.
         """
         return self.paste_content is not None or self.is_processing_task
+
+
+@dataclass
+class OnContextResponse:
+    """
+    Response object returned by the on_context_request method.
+    """
+
+    @dataclass
+    class ExtensionContext:
+        """
+        Object to describe the context provided by an extension.
+        """
+
+        description: str
+        context: str
+
+    contexts: List[ExtensionContext]
 
 
 class ExtensionInterface(abc.ABC):
@@ -60,26 +82,19 @@ class ExtensionInterface(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def on_context_request(
+    async def on_context_request(
         self, source_extension_id: str, context_query: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> OnContextResponse:
         """
-        Handles a request for context information from another extension.
-
-        This allows extensions to query each other for relevant data. The
-        implementation should determine what context it can provide based on
-        the query and return it as a dictionary.
+        Asynchronously handles requests for additional context.
+        Extensions can inspect the context_query and return relevant data.
 
         Args:
-            source_extension_id: The unique identifier of the extension making
-                                 the request.
-            context_query: A dictionary specifying the context being requested.
-                           The structure of this query is up to the calling
-                           and receiving extensions to agree upon.
+            source_extension_id: The ID of the extension or module requesting context.
+            context_query: A dictionary representing the initial context or query.
 
         Returns:
-            A dictionary containing the requested context information, or an
-            empty dictionary if the requested context cannot be provided.
+            OnContextResponse object containing a list of ExtensionContext objects.
         """
         pass
 
@@ -100,7 +115,6 @@ class ExtensionInterface(abc.ABC):
                      - 'session_id': str
                      - 'request_id': str
                      - 'timestamp': str (ISO format UTC)
-                     - 'metadata': Dict[str, Any] (original metadata from client)
                      - 'window_info': Dict[str, Any] (parsed window info)
                      - 'screenshot_provided': bool
                      - 'selected_text': Optional[str]
