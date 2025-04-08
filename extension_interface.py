@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass
 
 @dataclass
@@ -35,6 +35,24 @@ class PasteResponse:
         return self.paste_content is not None or self.is_processing_task
 
 
+
+
+@dataclass
+class OnContextResponse:
+    """
+    Response object returned by the on_context_request method.
+    """
+    @dataclass
+    class ExtensionContext:
+        """
+        Object to describe the context provided by an extension.
+        """
+        description: str
+        context: str
+
+    contexts: List[ExtensionContext]
+
+
 class ExtensionInterface(abc.ABC):
     """
     Abstract Base Class defining the interface for all TabTabTab extensions.
@@ -62,7 +80,7 @@ class ExtensionInterface(abc.ABC):
     @abc.abstractmethod
     async def on_context_request(
         self, source_extension_id: str, context_query: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> OnContextResponse:
         """
         Asynchronously handles requests for additional context.
         Extensions can inspect the context_query and return relevant data.
@@ -72,8 +90,7 @@ class ExtensionInterface(abc.ABC):
             context_query: A dictionary representing the initial context or query.
 
         Returns:
-            A dictionary containing additional context information.
-            Return an empty dictionary if no relevant context is available.
+            OnContextResponse object containing a list of ExtensionContext objects.
         """
         pass
 

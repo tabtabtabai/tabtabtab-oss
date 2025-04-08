@@ -9,6 +9,7 @@ from open_sourced.extension_interface import (
     ExtensionInterface,
     CopyResponse,
     PasteResponse,
+    OnContextResponse
 )
 # Import LLM components from open_sourced
 from open_sourced.llm import LLMModel
@@ -187,7 +188,7 @@ class SampleExtension(ExtensionInterface):
 
     async def on_context_request(
         self, source_extension_id: str, context_query: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> OnContextResponse:
         """
         Asynchronously handles context requests by logging the request
         and returning some sample data.
@@ -203,12 +204,21 @@ class SampleExtension(ExtensionInterface):
         # if context_query.get("mode") == "some_mode":
         #    return {"special_mode_data": "value"}
 
-        return {
-            "some_context_key": "some_context_value_async", # Indicate async origin
-            "some_other_context_key": {
-                "some_nested_key": "some_nested_value_async"
-            }
-        }
+        response = OnContextResponse(
+            contexts=[
+                OnContextResponse.ExtensionContext(
+                    description="some_context_key",
+                    context="some_context_value_async"
+                ),
+                OnContextResponse.ExtensionContext(
+                    description="some_other_context_key",
+                    context=json.dumps({
+                        "some_nested_key": "some_nested_value_async"
+                    })
+                )
+            ]
+        )
+        return response
 
 
     async def on_copy(self, context: Dict[str, Any]) -> CopyResponse:
