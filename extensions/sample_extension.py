@@ -235,6 +235,7 @@ class SampleExtension(ExtensionInterface):
         window_info = context.get("window_info", {}) # Should be a dict now
         browser_url = window_info.get("accessibilityData", {}).get("browser_url") if isinstance(window_info, dict) else None
         screenshot_data: Optional[bytes] = context.get("screenshot_data") # <-- Access screenshot data
+        extensions_context = context.get("extensions_context", {})
 
         # Log whether screenshot data was received
         if screenshot_data:
@@ -244,6 +245,9 @@ class SampleExtension(ExtensionInterface):
             #     asyncio.create_task(self._analyze_image_async(screenshot_data, device_id, request_id))
         else:
             log.info(f"[{self.extension_id}][Req:{request_id}] No screenshot data received in context.")
+
+        if extensions_context:
+            log.info(f"[{self.extension_id}][Req:{request_id}] Received extensions context: {extensions_context}")
 
 
         if browser_url and isinstance(browser_url, str) and device_id and request_id:
