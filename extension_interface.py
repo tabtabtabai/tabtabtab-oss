@@ -85,14 +85,21 @@ class ExtensionInterface(abc.ABC):
         background tasks, prepare data, or interact with external services.
 
         Args:
-            context: A dictionary containing information about the copy event,
-                     such as the copied content, the source application,
-                     active URL, etc. The exact structure depends on the
-                     information provided by the client/framework.
+            context: A dictionary containing information about the copy event.
+                     Common keys include:
+                     - 'device_id': str
+                     - 'session_id': str
+                     - 'request_id': str
+                     - 'timestamp': str (ISO format UTC)
+                     - 'metadata': Dict[str, Any] (original metadata from client)
+                     - 'window_info': Dict[str, Any] (parsed window info)
+                     - 'screenshot_provided': bool
+                     - 'selected_text': Optional[str]
+                     - 'screenshot_data': Optional[bytes] (Raw image data if screenshot_provided is True)
 
         Returns:
             A CopyResponse object, potentially containing a message to notify
-            the user.
+            the user and indicating if a background task was started.
         """
         pass
 

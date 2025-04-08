@@ -202,7 +202,7 @@ class SampleExtension(ExtensionInterface):
         """
         Handles copy events. If a browser URL is detected in window_info,
         it triggers a background task to fetch content, summarize it,
-        and send results via SSE.
+        and send results via SSE. Also logs if screenshot data is present.
         """
         log.info(f"[{self.extension_id}] on_copy called with context keys: {list(context.keys())}")
 
@@ -211,6 +211,17 @@ class SampleExtension(ExtensionInterface):
         request_id = context.get("request_id")
         window_info = context.get("window_info", {}) # Should be a dict now
         browser_url = window_info.get("accessibilityData", {}).get("browser_url") if isinstance(window_info, dict) else None
+        screenshot_data: Optional[bytes] = context.get("screenshot_data") # <-- Access screenshot data
+
+        # Log whether screenshot data was received
+        if screenshot_data:
+            log.info(f"[{self.extension_id}][Req:{request_id}] Received screenshot data ({len(screenshot_data)} bytes).")
+            # Example: You could potentially pass screenshot_data to another function
+            # if self.llm_processor and hasattr(self.llm_processor, 'process_image'):
+            #     asyncio.create_task(self._analyze_image_async(screenshot_data, device_id, request_id))
+        else:
+            log.info(f"[{self.extension_id}][Req:{request_id}] No screenshot data received in context.")
+
 
         if browser_url and isinstance(browser_url, str) and device_id and request_id:
             log.info(f"[{self.extension_id}][Req:{request_id}] URL detected: {browser_url}. Triggering background processing for device {device_id}.")
@@ -227,9 +238,14 @@ class SampleExtension(ExtensionInterface):
                         self._summarize_url_content_async(browser_url, device_id, request_id)
                     )
                     log.info(f"[{self.extension_id}][Req:{request_id}] Background task created successfully.")
+                    # Modify notification based on whether screenshot was also present?
+                    detail_msg = "Starting background summarization for URL..."
+                    if screenshot_data:
+                        detail_msg += " (Screenshot data also received)."
+
                     return CopyResponse(
                         notification_title = f"Request received",
-                        notification_detail = f"Starting background summarization for URL...",
+                        notification_detail = detail_msg,
                         is_processing_task = True
                     )
                 except Exception as e:
@@ -255,8 +271,8 @@ class SampleExtension(ExtensionInterface):
              )
 
         return CopyResponse(
-            notification_title = "Internal error",
-            notification_detail = "No browser URL found to process.",
+            notification_title = "Request received",
+            notification_detail = "No browser URL found to process." + (" Screenshot data received." if screenshot_data else ""),
             is_processing_task = False
         )
 
