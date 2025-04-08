@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "tabtabtab-oss"
+version = "0.1.0"
+description = "TabTabTab OSS Extensions"
+authors = ["TabTabTabAI"]
+readme = "README.md"
+packages = [
+    {include = "extensions"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+aiohttp = "^3.11.3"
+tabtabtab-lib = {git = "https://github.com/tabtabtabai/tabtabtab-lib.git"}
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^5.13.2"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.5"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = "\\.pyi?$"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=extensions --cov-report=term-missing"
