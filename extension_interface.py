@@ -2,7 +2,6 @@ import abc
 from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass
 
-
 @dataclass
 class CopyResponse:
     """
