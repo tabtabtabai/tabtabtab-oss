@@ -10,6 +10,7 @@ class EXTENSION_ID(Enum):
     """
     Enum containing all possible extension IDs.
     """
+
     SAMPLE_EXTENSION = auto()
 
 
@@ -17,6 +18,7 @@ class EXTENSION_DEPENDENCIES(Enum):
     """
     Enum containing all possible extension dependencies.
     """
+
     GOOGLE_CALENDAR_API_KEY = auto()
 
 

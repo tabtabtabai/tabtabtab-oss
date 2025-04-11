@@ -49,17 +49,6 @@ class SampleExtension(ExtensionInterface):
         self.sse_sender = sse_sender  # Store the injected SSE sender
         log.info(f"[{self.extension_id}] Initializing...")
 
-    def setup(self, config: Dict[str, Any]) -> None:
-        """
-        Stores configuration, specifically looking for an API key.
-        """
-        log.info(f"[{self.extension_id}] Setting up with config: {config}")
-        self.api_key = config.get("api_key")
-        if self.api_key:
-            log.info(f"[{self.extension_id}] API key configured.")
-        else:
-            log.warning(f"[{self.extension_id}] API key not found in config.")
-
     async def _send_sse_notification(
         self,
         device_id: str,

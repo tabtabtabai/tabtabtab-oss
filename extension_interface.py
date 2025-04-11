@@ -2,6 +2,7 @@ import abc
 from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass
 
+
 @dataclass
 class CopyResponse:
     """
@@ -63,22 +64,6 @@ class ExtensionInterface(abc.ABC):
     Each extension module must contain a class that inherits from this
     interface and implements all its abstract methods.
     """
-
-    @abc.abstractmethod
-    def setup(self, config: Dict[str, Any]) -> None:
-        """
-        Initializes the extension with its specific configuration.
-
-        This method is called once by the framework when the extension is loaded.
-        It should be used to store API keys, set up connections, or perform
-        any other necessary initialization based on the provided configuration.
-
-        Args:
-            config: A dictionary containing configuration parameters for this
-                    extension (e.g., API keys, settings loaded from a central
-                    configuration file).
-        """
-        pass
 
     @abc.abstractmethod
     async def on_context_request(
