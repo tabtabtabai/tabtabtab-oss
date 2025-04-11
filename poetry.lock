@@ -958,7 +958,7 @@ pydantic = {version = "^2.10.6", extras = ["email"]}
 type = "git"
 url = "https://github.com/tabtabtabai/tabtabtab-lib.git"
 reference = "HEAD"
-resolved_reference = "43fd511e7164d54a3b90809903af50215b98a47b"
+resolved_reference = "da886ea80f0a40e70419db6017e5be5a2f732c89"
 
 [[package]]
 name = "tomli"
