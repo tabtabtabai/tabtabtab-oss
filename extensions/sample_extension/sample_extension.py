@@ -10,6 +10,8 @@ from tabtabtab_lib.extension_interface import (
     CopyResponse,
     PasteResponse,
     OnContextResponse,
+    Notification,
+    NotificationStatus,
 )
 
 # Update LLM imports
@@ -29,26 +31,6 @@ class SampleExtension(ExtensionInterface):
     detected in on_copy, running in the background and sending the
     summary back via an injected SSE sender.
     """
-
-    extension_id: str = "sample_extension"
-
-    def __init__(
-        self, sse_sender: SSESenderInterface, llm_processor: LLMProcessorInterface
-    ):
-        """
-        Initializes the SampleExtension.
-
-        Args:
-            sse_sender: An object conforming to the SSESenderInterface
-                        for sending notifications back to the client.
-            llm_processor: An object conforming to the LLMProcessorInterface
-                           for interacting with language models.
-        """
-        self.api_key: Optional[str] = None
-        self.llm_processor = llm_processor  # Store the injected LLM processor
-        self.sse_sender = sse_sender  # Store the injected SSE sender
-        log.info(f"[{self.extension_id}] Initializing...")
-
 
     async def on_context_request(
         self, source_extension_id: str, context_query: Dict[str, Any]
@@ -104,9 +86,6 @@ class SampleExtension(ExtensionInterface):
             log.info(
                 f"[{self.extension_id}][Req:{request_id}] Received screenshot data ({len(screenshot_data)} bytes)."
             )
-            # Example: You could potentially pass screenshot_data to another function
-            # if self.llm_processor and hasattr(self.llm_processor, 'process_image'):
-            #     asyncio.create_task(self._analyze_image_async(screenshot_data, device_id, request_id))
         else:
             log.info(
                 f"[{self.extension_id}][Req:{request_id}] No screenshot data received in context."
@@ -125,11 +104,6 @@ class SampleExtension(ExtensionInterface):
                 log.error(
                     f"[{self.extension_id}][Req:{request_id}] Cannot start background task: SSE sender not available."
                 )
-                return CopyResponse(
-                    notification_title=f"Internal error",
-                    notification_detail=f"SSE not configured. Please check your configuration.",
-                    is_processing_task=False,
-                )
             else:
                 try:
                     asyncio.create_task(
@@ -146,8 +120,13 @@ class SampleExtension(ExtensionInterface):
                         detail_msg += " (Screenshot data also received)."
 
                     return CopyResponse(
-                        notification_title=f"Request received",
-                        notification_detail=detail_msg,
+                        notification=Notification(
+                            request_id=request_id,
+                            title="Sample Extension 1",
+                            detail=detail_msg,
+                            content="",
+                            status=NotificationStatus.PENDING,
+                        ),
                         is_processing_task=True,
                     )
                 except Exception as e:
@@ -155,34 +134,23 @@ class SampleExtension(ExtensionInterface):
                         f"[{self.extension_id}][Req:{request_id}] Failed to create background task: {e}",
                         exc_info=True,
                     )
-                    return CopyResponse(
-                        notification_title=f"Internal error",
-                        notification_detail=f"Failed to create background task: {e}",
-                        is_processing_task=False,
-                    )
         elif not browser_url or not isinstance(browser_url, str):
             log.info(
                 f"[{self.extension_id}][Req:{request_id}] No valid 'browser_url' found in window_info: {window_info}"
-            )
-            return CopyResponse(
-                notification_title=f"Request received",
-                notification_detail=f"No valid URL found in window_info.",
-                is_processing_task=False,
             )
         elif not device_id or not request_id:
             log.error(
                 f"[{self.extension_id}] Missing device_id or request_id in context. Cannot start background task. Context keys: {list(context.keys())}"
             )
-            return CopyResponse(
-                notification_title=f"Internal error",
-                notification_detail=f"Missing device_id or request_id in context.",
-                is_processing_task=False,
-            )
 
         return CopyResponse(
-            notification_title="Request received",
-            notification_detail="No browser URL found to process."
-            + (" Screenshot data received." if screenshot_data else ""),
+            notification=Notification(
+                request_id=request_id,
+                title="Sample Extension 1",
+                detail="Error",
+                content="Error occurred while processing copy event.",
+                status=NotificationStatus.ERROR,
+            ),
             is_processing_task=False,
         )
 
@@ -194,13 +162,10 @@ class SampleExtension(ExtensionInterface):
 
         device_id = context.get("device_id")
         request_id = context.get("request_id")
-        extensions_context = context.get("extensions_context", {})
 
         # example of doing a long running task
         try:
-            asyncio.create_task(
-                self._long_running_task(device_id, request_id, extensions_context)
-            )
+            asyncio.create_task(self._sample_long_running_task(device_id, request_id))
             log.info(
                 f"[{self.extension_id}][Req:{request_id}] Background task created successfully."
             )
@@ -211,60 +176,27 @@ class SampleExtension(ExtensionInterface):
                 exc_info=True,
             )
             return PasteResponse(
-                notification_title=f"Internal error",
-                notification_detail=f"Failed to create background task: {e}",
+                notification=Notification(
+                    request_id=request_id,
+                    title="Sample Extension 1",
+                    detail=f"Internal error",
+                    content=f"Failed to create background task: {e}",
+                    status=NotificationStatus.ERROR,
+                ),
                 is_processing_task=False,
             )
 
         return PasteResponse(
-            notification_title="Request received",
-            notification_detail="Starting background paste task. Extension Context: "
-            + str(context.get("extensions_context")),
+            notification=Notification(
+                request_id=request_id,
+                title="Sample Extension 1",
+                detail="Request received",
+                content="Starting background paste task. Extension Context: "
+                + str(context.get("extensions_context")),
+                status=NotificationStatus.PENDING,
+            ),
             is_processing_task=True,
         )
-
-    async def _send_sse_notification(
-        self,
-        device_id: str,
-        request_id: str,
-        message: str,
-        status: str = "info",
-        details: Optional[Dict] = None,
-    ):
-        """Helper to send SSE notifications using the injected sender."""
-        if not device_id or not request_id:
-            log.error(
-                f"[{self.extension_id}] Cannot send SSE notification: Missing device_id or request_id."
-            )
-            return
-        if not self.sse_sender:
-            log.error(
-                f"[{self.extension_id}] Cannot send SSE notification: SSE sender not configured."
-            )
-            return
-
-        payload = {
-            "extension_id": self.extension_id,
-            "request_id": request_id,
-            "message": message,
-            "status": status,  # e.g., "info", "success", "error", "progress"
-            "details": details or {},  # Optional dictionary for structured data
-        }
-        try:
-            # Use the injected sse_sender
-            await self.sse_sender.send_event(
-                device_id=device_id,
-                event_name="extension_notification",  # Standardized event name
-                data=payload,
-            )
-            log.info(
-                f"[{self.extension_id}] SSE notification sent via interface to device {device_id} (Request ID: {request_id}): {message}"
-            )
-        except Exception as e:
-            log.error(
-                f"[{self.extension_id}] Failed to send SSE notification via interface to device {device_id} (Request ID: {request_id}): {e}",
-                exc_info=True,
-            )
 
     async def _summarize_url_content_async(
         self, browser_url: str, device_id: str, request_id: str
@@ -279,9 +211,6 @@ class SampleExtension(ExtensionInterface):
 
         if not browser_url or not isinstance(browser_url, str):
             log.warning(f"{log_prefix} No valid browser URL provided for processing.")
-            await self._send_sse_notification(
-                device_id, request_id, "No valid URL provided.", status="error"
-            )
             return
 
         log.info(f"{log_prefix} Starting background processing for URL: {browser_url}")
@@ -300,65 +229,39 @@ class SampleExtension(ExtensionInterface):
                             log.error(
                                 f"{log_prefix} Error decoding content from URL {browser_url}: {decode_err}"
                             )
-                            await self._send_sse_notification(
-                                device_id,
-                                request_id,
-                                f"Error decoding content from URL.",
-                                status="error",
-                            )
                             return
 
                         log.info(
                             f"{log_prefix} Successfully fetched URL content (length: {len(text_content)})"
                         )
-                        await self._send_sse_notification(
-                            device_id,
-                            request_id,
-                            "URL content fetched.",
-                            status="progress",
-                        )
                     else:
                         log.error(
                             f"{log_prefix} Failed to fetch URL: {response.status}"
                         )
-                        await self._send_sse_notification(
-                            device_id,
-                            request_id,
-                            f"Failed to fetch URL (Status: {response.status}).",
-                            status="error",
+                        await self.send_push_notification(
+                            device_id=device_id,
+                            notification=Notification(
+                                request_id=request_id,
+                                title="Sample Extension 1",
+                                detail=f"Failed to fetch URL: {response.status}",
+                                content="",
+                                status=NotificationStatus.ERROR,
+                            ),
                         )
                         return
         except ImportError:
             log.error(
                 f"{log_prefix} aiohttp library not found. Cannot fetch URL content."
             )
-            await self._send_sse_notification(
-                device_id,
-                request_id,
-                "Internal error: Missing required library.",
-                status="error",
-            )
-            return
-        except asyncio.TimeoutError:
-            log.error(f"{log_prefix} Timeout fetching URL content from {browser_url}")
-            await self._send_sse_notification(
-                device_id, request_id, f"Timeout fetching URL.", status="error"
-            )
             return
         except Exception as e:
             log.error(f"{log_prefix} Error fetching URL content: {e}", exc_info=True)
-            await self._send_sse_notification(
-                device_id, request_id, f"Error fetching URL: {e}", status="error"
-            )
             return
         # --- End Fetch URL Content ---
 
         # --- LLM Integration ---
         if not text_content:
             log.warning(f"{log_prefix} No text content fetched from URL to process.")
-            await self._send_sse_notification(
-                device_id, request_id, "No content found at URL.", status="warning"
-            )
             return
 
         content_summarization_prompt = """
@@ -374,19 +277,10 @@ class SampleExtension(ExtensionInterface):
 
         if not self.llm_processor:
             log.error(f"{log_prefix} LLM Processor not configured/injected.")
-            await self._send_sse_notification(
-                device_id,
-                request_id,
-                "Internal error: AI processor not available.",
-                status="error",
-            )
             return
 
         try:
             log.info(f"{log_prefix} Calling LLM to summarize content...")
-            await self._send_sse_notification(
-                device_id, request_id, "Summarizing content...", status="progress"
-            )
             llm_response = await self.llm_processor.process(
                 system_prompt=content_summarization_prompt,
                 message="Summarize the following content, grouping by topic if applicable:",
@@ -397,12 +291,6 @@ class SampleExtension(ExtensionInterface):
 
             if not isinstance(llm_response, str) or not llm_response.strip():
                 log.error(f"{log_prefix} LLM response was not a non-empty string.")
-                await self._send_sse_notification(
-                    device_id,
-                    request_id,
-                    "Failed to get valid summary from AI.",
-                    status="error",
-                )
                 return  # Stop if LLM response is invalid
 
             summary_result = llm_response.strip()
@@ -412,43 +300,34 @@ class SampleExtension(ExtensionInterface):
 
             # --- Send Final Result via SSE ---
             log.info(f"{log_prefix} Successfully generated summary.")
-            await self._send_sse_notification(
-                device_id,
-                request_id,
-                f"Content summary generated.",
-                status="success",
-                details={"summary": summary_result},
+            await self.send_push_notification(
+                device_id=device_id,
+                notification=Notification(
+                    request_id=request_id,
+                    title="Sample Extension 1",
+                    detail="Content summary generated",
+                    content=summary_result,
+                    status=NotificationStatus.READY,
+                ),
             )
 
         except Exception as e:
             log.exception(f"{log_prefix} Error during LLM processing: {e}")
-            await self._send_sse_notification(
-                device_id,
-                request_id,
-                f"An error occurred during AI analysis: {e}",
-                status="error",
-            )
-        # --- End LLM Integration ---
 
-    async def _long_running_task(
-        self, device_id: str, request_id: str, extensions_context: Dict[str, Any]
-    ) -> None:
+    async def _sample_long_running_task(self, device_id: str, request_id: str) -> None:
         log.info(f"[{self.extension_id}][Req:{request_id}] Starting long running task.")
         await asyncio.sleep(10)
         log.info(
             f"[{self.extension_id}][Req:{request_id}] Long running task completed."
         )
 
-        # Modify notification based on whether screenshot was also present?
-        # Send notification via SSE after task completes
-        await self._send_sse_notification(
+        await self.send_push_notification(
             device_id=device_id,
-            request_id=request_id,
-            message="The long running task has completed! This is an example of sending a notification back to the client after background processing finishes. Extensions can use this to provide updates on their progress or results.",
-            status="success",
-            details={
-                "completion_time": "10 seconds",
-                "task_type": "background_paste_processing",
-                "extensions_context": extensions_context,
-            },
+            notification=Notification(
+                request_id=request_id,
+                title="Sample Extension 1",
+                detail="Long running task",
+                content="Task completed after 10 seconds",
+                status=NotificationStatus.READY,
+            ),
         )
