@@ -12,6 +12,7 @@ from tabtabtab_lib.extension_interface import (
     OnContextResponse,
     Notification,
     NotificationStatus,
+    ImmediatePaste,
 )
 
 # Update LLM imports
@@ -176,7 +177,7 @@ class SampleExtension(ExtensionInterface):
                 exc_info=True,
             )
             return PasteResponse(
-                notification=Notification(
+                paste=Notification(
                     request_id=request_id,
                     title="Sample Extension 1",
                     detail=f"Internal error",
@@ -187,7 +188,7 @@ class SampleExtension(ExtensionInterface):
             )
 
         return PasteResponse(
-            notification=Notification(
+            paste=Notification(
                 request_id=request_id,
                 title="Sample Extension 1",
                 detail="Request received",
