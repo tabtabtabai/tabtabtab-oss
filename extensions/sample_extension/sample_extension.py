@@ -302,7 +302,7 @@ class SampleExtension(ExtensionInterface):
                 notification=Notification(
                     request_id=request_id,
                     title="Sample",
-                    detail="Content summary generated",
+                    detail="Screen summary generated",
                     content=summary_result,
                     status=NotificationStatus.READY,
                 ),
