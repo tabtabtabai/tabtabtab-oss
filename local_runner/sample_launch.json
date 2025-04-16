@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Extension Local Runner (Copy)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/local_runner/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["copy"],
+            "env": {
+                 "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Run Extension Local Runner (Paste)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/local_runner/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["paste"],
+            "env": {
+                 "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Run Extension Local Runner (All)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/local_runner/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["all"],
+            "env": {
+                 "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+} 
