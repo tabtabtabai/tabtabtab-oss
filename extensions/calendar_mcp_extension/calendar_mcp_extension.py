@@ -197,7 +197,9 @@ class CalendarMCPExtension(ExtensionInterface):
                     messages.append({"role": "assistant", "content": content})
 
                     tool_results = await tool_provider.execute_all_tools(content)
-                    tool_calls = bool(tool_results)
+
+                    # we or here as we might have set it to true prior
+                    tool_calls = bool(tool_results) or tool_calls
 
                     if not tool_results:
                         result = content[0].text
