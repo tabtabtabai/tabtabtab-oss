@@ -14,7 +14,7 @@ from tabtabtab_lib.extension_interface import (
 from extensions.mcp_extension_lib import MCPToolProvider, Tool
 from extensions.mcp_extension_lib import DEFAULT_MODEL, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE
 import anthropic
-
+from extension_dependencies import EXTENSION_DEPENDENCIES
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -101,11 +101,11 @@ class NotionMCPExtension(ExtensionInterface):
             async with MCPToolProvider() as tool_provider:
                 logger.info(f"{log_prefix}: Initializing MCPToolProvider...")
                 # Initialization happens within __aenter__
-                await tool_provider.initialize(dependencies["mcp_url"])
+                await tool_provider.initialize(dependencies[EXTENSION_DEPENDENCIES.notion_mcp_url.value])
                 logger.info(f"{log_prefix}: MCPToolProvider initialized. Processing text...")
 
                 # Get Anthropic client and tools (MCPToolProvider should provide Notion tools)
-                client = anthropic.Anthropic(api_key=dependencies["anthropic_api_key"])
+                client = anthropic.Anthropic(api_key=dependencies[EXTENSION_DEPENDENCIES.anthropic_api_key.value])
 
                 # Get Notion tools as dictionaries from the provider
                 tools_dict = await tool_provider.get_tools_as_dicts([]) # Pass empty list or specific non-Notion tools if needed

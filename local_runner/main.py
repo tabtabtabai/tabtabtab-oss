@@ -187,12 +187,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Using the hardcoded values from the previous version for now:
     dependencies = {
-        "mcp_url": os.getenv("MCP_NOTION_URL"),
+        "notion_mcp_url": os.getenv("NOTION_MCP_URL"),
         "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
     }
 
     # Check if required dependencies are present
-    if not dependencies.get("mcp_url") or not dependencies.get("anthropic_api_key"):
+    if not dependencies.get("notion_mcp_url") or not dependencies.get("anthropic_api_key"):
         log.error("Missing required dependencies: mcp_url or anthropic_api_key")
         sys.exit(1)
 
