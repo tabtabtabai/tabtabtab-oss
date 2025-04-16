@@ -40,6 +40,12 @@ Create a new directory for your extension under `extensions/` (e.g., `extensions
 ### Reference Existing Examples
 Look at the code in `extensions/sample_extension/` or other existing extensions for examples of how to structure your code and implement the required methods (`on_copy`, `on_paste`, `on_context_request`).
 
+### Update requirements.txt
+Update the `requirements.txt` file to include the new dependencies.
+```bash
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+```
+
 ### Make a Pull Request
 Once your change is merged to the main branch, it will be live and ready to use in the TabTabTab app!
 
