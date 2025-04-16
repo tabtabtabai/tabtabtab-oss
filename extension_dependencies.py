@@ -1,12 +1,12 @@
 from tabtabtab_lib.extension_directory import BaseExtensionDependencies
-
+from enum import auto
 class EXTENSION_DEPENDENCIES(BaseExtensionDependencies):
     """
     Enum containing all possible extension dependencies.
     """
 
-    google_calendar_api_key = "google_calendar_api_key"
-    notion_mcp_url = "notion_mcp_url"
-    calendar_mcp_url = "calendar_mcp_url" 
-    anthropic_api_key = "anthropic_api_key"
-    my_location = "my_location"
+    google_calendar_api_key = auto()
+    notion_mcp_url = auto()
+    calendar_mcp_url = auto() 
+    anthropic_api_key = auto()
+    my_location = auto()

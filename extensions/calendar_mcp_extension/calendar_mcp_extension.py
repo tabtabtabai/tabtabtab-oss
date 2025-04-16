@@ -148,9 +148,9 @@ class CalendarMCPExtension(ExtensionInterface):
         time_tool = Tool.from_function(get_current_time)
 
         # Extract these values once at the beginning
-        my_location = dependencies.get(EXTENSION_DEPENDENCIES.my_location.value, "")
-        calendar_mcp_url = dependencies.get(EXTENSION_DEPENDENCIES.calendar_mcp_url.value, "")
-        anthropic_api_key = dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.value, "")
+        my_location = dependencies.get(EXTENSION_DEPENDENCIES.my_location.name, "")
+        calendar_mcp_url = dependencies.get(EXTENSION_DEPENDENCIES.calendar_mcp_url.name, "")
+        anthropic_api_key = dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.name, "")
 
         # The rest of the method can be simplified...
         try:

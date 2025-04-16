@@ -101,12 +101,12 @@ async def main(
         "screenshot_data": b"simulated_screenshot_bytes",
         "is_final_prediction": False,
         "current_clipboard": None,
-        "selected_text": "selected text sample for Notion", # Make text slightly more specific
+        "selected_text": f"selected text sample for {extension_name}",
         "extensions_context": {},
         "dependencies": dependencies
     }
 
-    # Sample context for on_paste (Notion extension currently ignores this)
+    # Sample context for on_paste
     paste_context = {
         "device_id": "test_device_456",
         "request_id": "req_paste_xyz",
@@ -133,13 +133,13 @@ async def main(
         "metadata": {
             "window_info": "{\"bundleIdentifier\":\"com.google.Chrome\",\"appName\":\"Google Chrome\"}"
         },
-        "hint": "Sample hint text",
+        "hint": f"Sample hint text for {extension_name}",
         "sticky_hint": None,
         "current_clipboard": None,
         "mode": "async_paste",
         "is_final_prediction": False,
         "extensions_context": {
-            "SAMPLE_EXTENSION": {
+            "another_extension_id": { # Example context from another extension
                 "contexts": [
                     {"description": "some_context_key", "context": "some_context_value_async"},
                     {"description": "some_other_context_key", "context": "{\"some_nested_key\": \"some_nested_value_async\"}"}
@@ -150,9 +150,20 @@ async def main(
         "dependencies": dependencies
     }
 
+    # --- Prepare Sample Context for on_context_request ---
+    # TODO(vw) flesh out this
+    context_request_context = {
+        "source_extension_id": "test_source_extension_id_123",
+        "context_query": {
+            "query_type": "sample_query",
+            "details": "Requesting general context information.",
+            # Pass dependencies here as SampleContextExtension expects them
+            "dependencies": dependencies
+        }
+    }
+
+
     # --- Call Extension Methods based on action ---
-    # Note: Background tasks might use external services (MCP, LLMs).
-    # The current setup will attempt to make real network calls based on the dependencies.
     if action in ['copy', 'all']:
         log.info(f"\n--- Testing {extension_name}.on_copy ---")
         try:
@@ -173,6 +184,20 @@ async def main(
         except Exception as e:
             log.error(f"Error calling on_paste or its background task: {e}", exc_info=True)
 
+    # --- Add test for on_context_request ---
+    if action in ['context', 'all']:
+        log.info(f"\n--- Testing {extension_name}.on_context_request ---")
+        try:
+            context_response: Optional[OnContextResponse] = await extension.on_context_request(
+                source_extension_id=context_request_context["source_extension_id"],
+                context_query=context_request_context["context_query"]
+            )
+            log.info(f"on_context_request response: {context_response}")
+            # No background task wait needed typically for context requests
+        except Exception as e:
+            log.error(f"Error calling on_context_request: {e}", exc_info=True)
+
+
     log.info(f"\n--- Local Extension Runner Finished for {extension_name} ---")
 
 
@@ -181,8 +206,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run local tests for NotionMCPExtension.") # Updated description
     parser.add_argument(
         'action',
-        choices=['copy', 'paste', 'all'],
-        help="Specify which action to test: 'copy', 'paste', or 'all'."
+        choices=['copy', 'paste', 'context', 'all'],
+        help="Specify which action to test: 'copy', 'paste', 'context', or 'all'."
     )
     args = parser.parse_args()
     # Using the hardcoded values from the previous version for now:

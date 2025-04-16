@@ -3,6 +3,7 @@ from tabtabtab_lib.extension_directory import (
     BaseExtensionID,
 )
 from extensions.sample_extension.sample_extension import SampleExtension
+from extensions.sample_context_extension.sample_context_extension import SampleContextExtension
 from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
 from extensions.calendar_mcp_extension.calendar_mcp_extension import CalendarMCPExtension
 from enum import auto
@@ -17,6 +18,7 @@ class EXTENSION_ID(BaseExtensionID):
     sample_extension = auto()
     notion_mcp_extension = auto()
     calendar_mcp_extension = auto()
+    sample_context_extension = auto()
 
 
 EXTENSION_DIRECTORY = [
@@ -25,6 +27,12 @@ EXTENSION_DIRECTORY = [
         description="Sample extension to show how to use the extension interface. It takes a copy of a web browser page (public only) and summarizes it.",
         dependencies=[],
         extension_class=SampleExtension,
+    ),
+    ExtensionDescriptor(
+        extension_id=EXTENSION_ID.sample_context_extension,
+        description="Sample context extension to show how to use the extension as context provider.",
+        dependencies=[],
+        extension_class=SampleContextExtension,
     ),
     ExtensionDescriptor(
         extension_id=EXTENSION_ID.notion_mcp_extension,

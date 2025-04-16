@@ -101,11 +101,11 @@ class NotionMCPExtension(ExtensionInterface):
             async with MCPToolProvider() as tool_provider:
                 logger.info(f"{log_prefix}: Initializing MCPToolProvider...")
                 # Initialization happens within __aenter__
-                await tool_provider.initialize(dependencies[EXTENSION_DEPENDENCIES.notion_mcp_url.value])
+                await tool_provider.initialize(dependencies[EXTENSION_DEPENDENCIES.notion_mcp_url.name])
                 logger.info(f"{log_prefix}: MCPToolProvider initialized. Processing text...")
 
                 # Get Anthropic client and tools (MCPToolProvider should provide Notion tools)
-                client = anthropic.Anthropic(api_key=dependencies[EXTENSION_DEPENDENCIES.anthropic_api_key.value])
+                client = anthropic.Anthropic(api_key=dependencies[EXTENSION_DEPENDENCIES.anthropic_api_key.name])
 
                 # Get Notion tools as dictionaries from the provider
                 tools_dict = await tool_provider.get_tools_as_dicts([]) # Pass empty list or specific non-Notion tools if needed
