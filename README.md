@@ -2,20 +2,26 @@
 
 This package contains extensions for TabTabTab.
 
-## Development
+## Prerequisites
 
-This project uses Poetry for dependency management. To get started:
+Before you begin development, ensure you have Poetry installed for dependency management:
 
-\`\`\`bash
-# Install poetry
+
+### Install poetry
+```bash
 curl -sSL https://install.python-poetry.org | python3 -
+```
 
-# Install dependencies
+### Install dependencies
+```bash
 poetry install
+```
 
-# Activate virtual environment
+### Activate virtual environment
+```bash
 poetry shell
-\`\`\`
+```
+or in an IDE like VS Code or Cursor, you can activate the virtual environment by cmd+shift+p and then typing "Python: Select Interpreter" and selecting the one created by poetry.
 
 
 ## Adding a New Extension
