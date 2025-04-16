@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type
 import argparse
 import os
 import sys
@@ -9,12 +9,8 @@ import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-# Import the extension you want to test
-# Now import relative to the adjusted sys.path
-from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
-
 # Import necessary types for mocking/context
-from tabtabtab_lib.extension_interface import Notification
+from tabtabtab_lib.extension_interface import Notification, ExtensionInterface
 from tabtabtab_lib.llm_interface import LLMContext, LLMProcessorInterface
 from tabtabtab_lib.sse_interface import SSESenderInterface
 from tabtabtab_lib.llm import LLMModel
@@ -65,19 +61,25 @@ class MockLLMProcessor(LLMProcessorInterface):
         raise Exception("Sorry, direct LLM processing via this mock is not supported in the local runner for Notion.")
 
 
-
-
-async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int = 20):
-    """Main function to instantiate and test the NotionMCPExtension."""
-    log.info("--- Starting Local Extension Runner ---")
+# --- Updated main function signature ---
+async def main(
+    extension_class: Type[ExtensionInterface],
+    action: str,
+    dependencies: Dict[str, Any],
+    wait_time_seconds: int = 20
+):
+    """Main function to instantiate and test the specified Extension."""
+    extension_name = extension_class.__name__
+    log.info(f"--- Starting Local Extension Runner for {extension_name} ---")
     log.info(f"Action requested: {action}")
+    log.info(f"Dependencies provided: {list(dependencies.keys())}")
 
-    # --- Instantiate the Extension ---
+    # --- Instantiate the Extension Dynamically ---
     # Provide mock implementations for injected dependencies
-    extension = NotionMCPExtension(
+    extension = extension_class(
         sse_sender=MockSSESender(),
-        llm_processor=MockLLMProcessor(), # Still needed for potential base class usage
-        extension_id="notion_mcp_local_test" # Use a specific ID for the test
+        llm_processor=MockLLMProcessor(),
+        extension_id=f"{extension_name}_local_test"
     )
 
     # --- Prepare Sample Context Data ---
@@ -93,7 +95,7 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
             "windowTitle": "Example Domain",
             "windowOwner": "Google Chrome",
             "windowBounds": {},
-            "accessibilityData": {}
+            "accessibilityData": {"browser_url": "https://example.com"}
         },
         "screenshot_provided": True,
         "screenshot_data": b"simulated_screenshot_bytes",
@@ -101,7 +103,7 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
         "current_clipboard": None,
         "selected_text": "selected text sample for Notion", # Make text slightly more specific
         "extensions_context": {},
-        "dependencies": dependencies # Pass the provided dependencies
+        "dependencies": dependencies
     }
 
     # Sample context for on_paste (Notion extension currently ignores this)
@@ -127,7 +129,7 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
         },
         "screenshot_provided": True,
         "screenshot_data": b"",
-        "content_type": "image",
+        "content_type": "text",
         "metadata": {
             "window_info": "{\"bundleIdentifier\":\"com.google.Chrome\",\"appName\":\"Google Chrome\"}"
         },
@@ -136,7 +138,7 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
         "current_clipboard": None,
         "mode": "async_paste",
         "is_final_prediction": False,
-        "extensions_context": { # Example context from another extension
+        "extensions_context": {
             "SAMPLE_EXTENSION": {
                 "contexts": [
                     {"description": "some_context_key", "context": "some_context_value_async"},
@@ -145,16 +147,14 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
             }
         },
         "stream": True,
-        "dependencies": dependencies # Pass the provided dependencies
+        "dependencies": dependencies
     }
 
     # --- Call Extension Methods based on action ---
-    # Note: The Notion extension's background task uses external services (MCP, Anthropic).
-    # For true local testing without network calls, you'd need to mock those within
-    # the main function or the test setup (e.g., using unittest.mock.patch).
+    # Note: Background tasks might use external services (MCP, LLMs).
     # The current setup will attempt to make real network calls based on the dependencies.
     if action in ['copy', 'all']:
-        log.info("\n--- Testing on_copy ---")
+        log.info(f"\n--- Testing {extension_name}.on_copy ---")
         try:
             copy_response = await extension.on_copy(copy_context)
             log.info(f"on_copy response: {copy_response}")
@@ -164,16 +164,16 @@ async def main(action: str, dependencies: Dict[str, Any], wait_time_seconds: int
             log.error(f"Error during on_copy or its background task: {e}", exc_info=True)
 
     if action in ['paste', 'all']:
-        log.info("\n--- Testing on_paste ---")
+        log.info(f"\n--- Testing {extension_name}.on_paste ---")
         try:
             paste_response = await extension.on_paste(paste_context)
             log.info(f"on_paste response: {paste_response}")
-            log.info("Waiting for background tasks (may involve network calls)...")
+            log.info("Waiting for background tasks (if any from paste)...")
             await asyncio.sleep(wait_time_seconds)
         except Exception as e:
-            log.error(f"Error calling on_paste: {e}", exc_info=True)
+            log.error(f"Error calling on_paste or its background task: {e}", exc_info=True)
 
-    log.info("\n--- Local Extension Runner Finished ---")
+    log.info(f"\n--- Local Extension Runner Finished for {extension_name} ---")
 
 
 if __name__ == "__main__":
@@ -199,4 +199,5 @@ if __name__ == "__main__":
 
     # Run the main async function
     # Pass the action and loaded dependencies
-    asyncio.run(main(args.action, dependencies=dependencies, wait_time_seconds=20))
+    from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
+    asyncio.run(main(NotionMCPExtension, args.action, dependencies=dependencies, wait_time_seconds=20))
