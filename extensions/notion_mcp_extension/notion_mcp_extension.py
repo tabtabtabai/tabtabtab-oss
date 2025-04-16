@@ -18,7 +18,7 @@ from extensions.mcp_extension_lib import (
     DEFAULT_TEMPERATURE,
 )
 import anthropic
-from extension_dependencies import EXTENSION_DEPENDENCIES
+from extension_constants import EXTENSION_DEPENDENCIES
 
 # Configure logging
 logging.basicConfig(

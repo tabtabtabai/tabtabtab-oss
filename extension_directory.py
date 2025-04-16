@@ -9,7 +9,7 @@ from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtens
 from extensions.calendar_mcp_extension.calendar_mcp_extension import (
     CalendarMCPExtension,
 )
-from extension_dependencies import EXTENSION_DEPENDENCIES, EXTENSION_ID
+from extension_constants import EXTENSION_DEPENDENCIES, EXTENSION_ID
 
 
 EXTENSION_DIRECTORY = [
