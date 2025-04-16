@@ -29,7 +29,9 @@ or in an IDE like VS Code or Cursor, you can activate the virtual environment by
 To add a new extension to this repository, follow these steps:
 
 ### Define an ID
-Add a unique identifier for your extension to the `EXTENSION_ID` enum in `extension_constants.py`.
+1. Add a unique identifier for your extension to the `EXTENSION_ID` enum in `extension_constants.py`.
+2. Define the list of dependencies required for your extension in the `EXTENSION_DEPENDENCIES` enum in `extension_constants.py`. Users will be able
+to manage these dependencies via the TabTabTab app (Menu -> Manage Extensions).
 
 ### Register the Extension
 Add an `ExtensionDescriptor` instance for your extension to the `EXTENSION_DIRECTORY` list in `extension_directory.py`. This descriptor links the ID, description, dependencies, and the extension class itself.
