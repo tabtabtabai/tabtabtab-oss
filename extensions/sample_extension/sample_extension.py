@@ -123,12 +123,11 @@ class SampleExtension(ExtensionInterface):
                     return CopyResponse(
                         notification=Notification(
                             request_id=request_id,
-                            title="Sample Extension 1",
+                            title="Sample",
                             detail=detail_msg,
                             content="",
                             status=NotificationStatus.PENDING,
                         ),
-                        is_processing_task=True,
                     )
                 except Exception as e:
                     log.error(
@@ -147,12 +146,11 @@ class SampleExtension(ExtensionInterface):
         return CopyResponse(
             notification=Notification(
                 request_id=request_id,
-                title="Sample Extension 1",
+                title="Sample",
                 detail="Error",
                 content="Error occurred while processing copy event.",
                 status=NotificationStatus.ERROR,
-            ),
-            is_processing_task=False,
+            )
         )
 
     async def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
@@ -179,24 +177,22 @@ class SampleExtension(ExtensionInterface):
             return PasteResponse(
                 paste=Notification(
                     request_id=request_id,
-                    title="Sample Extension 1",
+                    title="Sample",
                     detail=f"Internal error",
                     content=f"Failed to create background task: {e}",
                     status=NotificationStatus.ERROR,
-                ),
-                is_processing_task=False,
+                )
             )
 
         return PasteResponse(
             paste=Notification(
                 request_id=request_id,
-                title="Sample Extension 1",
+                title="Sample",
                 detail="Request received",
                 content="Starting background paste task. Extension Context: "
                 + str(context.get("extensions_context")),
                 status=NotificationStatus.PENDING,
-            ),
-            is_processing_task=True,
+            )
         )
 
     async def _summarize_url_content_async(
@@ -243,7 +239,7 @@ class SampleExtension(ExtensionInterface):
                             device_id=device_id,
                             notification=Notification(
                                 request_id=request_id,
-                                title="Sample Extension 1",
+                                title="Sample",
                                 detail=f"Failed to fetch URL: {response.status}",
                                 content="",
                                 status=NotificationStatus.ERROR,
@@ -305,7 +301,7 @@ class SampleExtension(ExtensionInterface):
                 device_id=device_id,
                 notification=Notification(
                     request_id=request_id,
-                    title="Sample Extension 1",
+                    title="Sample",
                     detail="Content summary generated",
                     content=summary_result,
                     status=NotificationStatus.READY,
@@ -326,7 +322,7 @@ class SampleExtension(ExtensionInterface):
             device_id=device_id,
             notification=Notification(
                 request_id=request_id,
-                title="Sample Extension 1",
+                title="Sample",
                 detail="Long running task",
                 content="Task completed after 10 seconds",
                 status=NotificationStatus.READY,
