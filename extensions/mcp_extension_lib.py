@@ -352,8 +352,9 @@ class MCPToolProvider:
 
         return f"No tool found with name: {tool_name}"
 
-
-    def get_tool_calls_summary(self, contents: List[anthropic.types.ContentBlock]) -> str:
+    def get_tool_calls_summary(
+        self, contents: List[anthropic.types.ContentBlock]
+    ) -> str:
         tool_calls = []
         for content in contents:
             if isinstance(content, anthropic.types.ToolUseBlock):
@@ -361,12 +362,12 @@ class MCPToolProvider:
                 tool_name = content.name
                 tool_args = content.input
                 tool_calls.append((tool_use_id, tool_name, tool_args))
-        
+
         # Format tool calls into bullet points
         tool_calls_summary = []
         for tool_use_id, tool_name, tool_args in tool_calls:
             tool_calls_summary.append(f"• {tool_name}: {tool_args}")
-        
+
         # Join all tool calls into a single string
         tool_calls_text = "Calling tools:\n"
         tool_calls_text += "\n".join(tool_calls_summary)

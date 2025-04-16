@@ -21,6 +21,7 @@ from datetime import datetime
 import pytz
 import anthropic
 from extension_dependencies import EXTENSION_DEPENDENCIES
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -149,14 +150,20 @@ class CalendarMCPExtension(ExtensionInterface):
 
         # Extract these values once at the beginning
         my_location = dependencies.get(EXTENSION_DEPENDENCIES.my_location.name, "")
-        calendar_mcp_url = dependencies.get(EXTENSION_DEPENDENCIES.calendar_mcp_url.name, "")
-        anthropic_api_key = dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.name, "")
+        calendar_mcp_url = dependencies.get(
+            EXTENSION_DEPENDENCIES.calendar_mcp_url.name, ""
+        )
+        anthropic_api_key = dependencies.get(
+            EXTENSION_DEPENDENCIES.anthropic_api_key.name, ""
+        )
 
         # The rest of the method can be simplified...
         try:
             async with MCPToolProvider() as tool_provider:
                 logger.info(f"{self.extension_id}: Initializing MCPToolProvider...")
-                await tool_provider.initialize(calendar_mcp_url, [time_tool], "calendar")
+                await tool_provider.initialize(
+                    calendar_mcp_url, [time_tool], "calendar"
+                )
 
                 # This block can be simplified - no need for multi-line f-string
                 text = f"I am currently at {my_location}. Please resolving the following request: {text}"
