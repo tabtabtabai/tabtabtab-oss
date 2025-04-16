@@ -1,0 +1,40 @@
+name: Reload Extensions
+
+on:
+  workflow_dispatch:
+
+# Set permissions for this workflow
+permissions:
+  contents: read
+
+jobs:
+  reload-extensions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Reload Extensions
+        run: |
+          # Define API constants
+          ADMIN_API_KEY="${{ secrets.ADMIN_API_KEY }}"
+          ADMIN_URL="${{ secrets.ADMIN_URL }}"
+          
+          # Make the POST request using curl
+          response=$(curl -s -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $ADMIN_API_KEY" \
+            "$ADMIN_URL/admin/extensions/reload")
+          
+          # Extract status code (last 3 characters)
+          status_code=${response: -3}
+          # Extract response body (everything except last 3 characters)
+          body=${response:0:${#response}-3}
+          
+          echo "Response status code: $status_code"
+          echo "Response body: $body"
+          
+          # Check if request was successful
+          if [[ "$status_code" == "200" ]]; then
+            echo "Extensions reload successful"
+          else
+            echo "Extensions reload failed with status code $status_code"
+            exit 1
+          fi
