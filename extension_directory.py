@@ -1,24 +1,11 @@
 from tabtabtab_lib.extension_directory import (
     ExtensionDescriptor,
-    BaseExtensionID,
 )
 from extensions.sample_extension.sample_extension import SampleExtension
 from extensions.sample_context_extension.sample_context_extension import SampleContextExtension
 from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
 from extensions.calendar_mcp_extension.calendar_mcp_extension import CalendarMCPExtension
-from enum import auto
-from extension_dependencies import EXTENSION_DEPENDENCIES
-
-
-class EXTENSION_ID(BaseExtensionID):
-    """
-    Enum containing all possible extension IDs.
-    """
-
-    sample_extension = auto()
-    notion_mcp_extension = auto()
-    calendar_mcp_extension = auto()
-    sample_context_extension = auto()
+from extension_dependencies import EXTENSION_DEPENDENCIES, EXTENSION_ID
 
 
 EXTENSION_DIRECTORY = [
@@ -36,7 +23,7 @@ EXTENSION_DIRECTORY = [
     ),
     ExtensionDescriptor(
         extension_id=EXTENSION_ID.notion_mcp_extension,
-        description="Notion extension, takes a copy of any text and adds it to a Notion page.",
+        description="Notion extension, pushes any text that is copied to the right place in Notion",
         dependencies=[EXTENSION_DEPENDENCIES.notion_mcp_url, EXTENSION_DEPENDENCIES.anthropic_api_key],
         extension_class=NotionMCPExtension,
     ),

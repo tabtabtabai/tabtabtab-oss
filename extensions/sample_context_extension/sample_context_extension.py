@@ -31,7 +31,7 @@ class SampleContextExtension(ExtensionInterface):
     async def on_copy(self, context: Dict[str, Any]) -> CopyResponse:
         """Handle copy event with dummy response."""
         logger.info(
-            f"Dummy extension received copy event with context: {context['dependencies']}"
+            f"Dummy extension received paste event"
         )
         return CopyResponse(
             notification=Notification(
@@ -46,6 +46,6 @@ class SampleContextExtension(ExtensionInterface):
     async def on_paste(self, context: Dict[str, Any]) -> PasteResponse:
         """Handle paste event with dummy content."""
         logger.info(
-            f"Dummy extension received paste event with context: {context['dependencies']}"
+            f"Dummy extension received paste event"
         )
         return None
