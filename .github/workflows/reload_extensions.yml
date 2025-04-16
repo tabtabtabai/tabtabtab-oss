@@ -21,7 +21,7 @@ jobs:
           # Make the POST request using curl
           response=$(curl -s -w "%{http_code}" -X POST \
             -H "Authorization: Bearer $ADMIN_API_KEY" \
-            "$ADMIN_URL/admin/extensions/reload")
+            "$ADMIN_URL")
           
           # Extract status code (last 3 characters)
           status_code=${response: -3}
