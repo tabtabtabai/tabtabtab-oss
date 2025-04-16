@@ -16,3 +16,31 @@ poetry install
 # Activate virtual environment
 poetry shell
 \`\`\`
+
+
+## Adding a New Extension
+
+To add a new extension to this repository, follow these steps:
+
+1.  **Define an ID:** Add a unique identifier for your extension to the `EXTENSION_ID` enum in `extension_constants.py`.
+2.  **Register the Extension:** Add an `ExtensionDescriptor` instance for your extension to the `EXTENSION_DIRECTORY` list in `extension_directory.py`. This descriptor links the ID, description, dependencies, and the extension class itself.
+3.  **Implement the Extension:** Create a new directory for your extension under `extensions/` (e.g., `extensions/my_new_extension/`) and place your extension's Python code there. Your main extension class should inherit from `ExtensionInterface` (from `tabtabtab-lib`).
+4.  **Reference Existing Examples:** Look at the code in `extensions/sample_extension/` or other existing extensions for examples of how to structure your code and implement the required methods (`on_copy`, `on_paste`, `on_context_request`).
+5. Once your change is merged to the main branch, it will be live and ready to use in the TabTabTab app.
+
+
+## Testing Locally
+
+You can test your extension locally using the provided local runner script.
+
+1.  **The Runner:** The script `local_runner/main.py` is designed to instantiate and run a single extension.
+2.  **Configuration:** You need to modify `local_runner/main.py` to:
+    *   Import your extension class.
+    *   Pass your extension class to the `main()` function call at the bottom of the script.
+    *   Ensure the `dependencies` dictionary within the `if __name__ == "__main__":` block includes the necessary keys (from `EXTENSION_DEPENDENCIES`) and retrieves their values (e.g., from environment variables loaded via a `.env` file).
+3.  **Running:** You can run the script from your terminal:
+    ```bash
+    python local_runner/main.py <action>
+    ```
+    Where `<action>` is `copy`, `paste`, `context`, or `all`.
+4.  **Debugging:** For debugging within VS Code or Cursor, you can use the provided `local_runner/sample_launch.json` as a template. Copy its contents into your `.vscode/launch.json` and adjust the `"program"` path and any environment variables (`"env"`) as needed for your specific extension. This allows you to set breakpoints and step through your extension's code. Make sure the `PYTHONPATH` in the launch configuration points to the project root so imports work correctly.
