@@ -23,3 +23,4 @@ class EXTENSION_ID(BaseExtensionID):
     notion_mcp_extension = auto()
     calendar_mcp_extension = auto()
     sample_context_extension = auto()
+    fashion_ideas = auto()

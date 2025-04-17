@@ -9,6 +9,7 @@ from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtens
 from extensions.calendar_mcp_extension.calendar_mcp_extension import (
     CalendarMCPExtension,
 )
+from extensions.fashion_ideas.fashion_ideas import FashionIdeasExtension
 from extension_constants import EXTENSION_DEPENDENCIES, EXTENSION_ID
 
 
@@ -43,5 +44,11 @@ EXTENSION_DIRECTORY = [
             EXTENSION_DEPENDENCIES.my_location,
         ],
         extension_class=CalendarMCPExtension,
+    ),
+    ExtensionDescriptor(
+        extension_id=EXTENSION_ID.fashion_ideas,
+        description="Fashion ideas extension, copy a text and get fashion ideas.",
+        dependencies=[],
+        extension_class=FashionIdeasExtension,
     ),
 ]
