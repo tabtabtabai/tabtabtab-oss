@@ -35,11 +35,12 @@ class FashionIdeasExtension(ExtensionInterface):
     It saves fashion items you're interested in and organizes them for later viewing.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, llm_processor: LLMProcessorInterface, sse_sender: SSESenderInterface, extension_id: str):
+        super().__init__(sse_sender, llm_processor, extension_id)
         # Create storage directory if it doesn't exist
         os.makedirs(FASHION_STORAGE_DIR, exist_ok=True)
         self.fashion_items = self._load_fashion_items()
+        self.llm_processor = llm_processor
         
     def _load_fashion_items(self) -> List[Dict]:
         """Load saved fashion items from storage"""
