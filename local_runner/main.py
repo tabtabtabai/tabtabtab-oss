@@ -207,8 +207,11 @@ async def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run local tests for NotionMCPExtension."
+    parser = argparse.ArgumentParser(description="Run local tests for extensions.")
+    parser.add_argument(
+        "extension",
+        choices=["notion", "translation"],
+        help="Specify which extension to test: 'notion' or 'translation'.",
     )
     parser.add_argument(
         "action",
@@ -216,26 +219,41 @@ if __name__ == "__main__":
         help="Specify which action to test: 'copy', 'paste', 'context', or 'all'.",
     )
     args = parser.parse_args()
-    # Using the hardcoded values from the previous version for now:
-    dependencies = {
-        EXTENSION_DEPENDENCIES.notion_mcp_url.name: os.getenv("NOTION_MCP_URL"),
-        EXTENSION_DEPENDENCIES.anthropic_api_key.name: os.getenv("ANTHROPIC_API_KEY"),
-    }
+
+    # Load dependencies based on the extension
+    if args.extension == "notion":
+        dependencies = {
+            EXTENSION_DEPENDENCIES.notion_mcp_url.name: os.getenv("NOTION_MCP_URL"),
+            EXTENSION_DEPENDENCIES.anthropic_api_key.name: os.getenv(
+                "ANTHROPIC_API_KEY"
+            ),
+        }
+        from extensions.notion_mcp_extension.notion_mcp_extension import (
+            NotionMCPExtension,
+        )
+
+        extension_class = NotionMCPExtension
+    else:  # translation
+        dependencies = {
+            EXTENSION_DEPENDENCIES.anthropic_api_key.name: os.getenv(
+                "ANTHROPIC_API_KEY"
+            ),
+        }
+        from extensions.translation_extension.translation_extension import (
+            TranslationExtension,
+        )
+
+        extension_class = TranslationExtension
 
     # Check if required dependencies are present
-    if not dependencies.get(
-        EXTENSION_DEPENDENCIES.notion_mcp_url.name
-    ) or not dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.name):
-        log.error("Missing required dependencies: mcp_url or anthropic_api_key")
+    if not dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.name):
+        log.error("Missing required dependency: anthropic_api_key")
         sys.exit(1)
 
     # Run the main async function
-    # Pass the action and loaded dependencies
-    from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
-
     asyncio.run(
         main(
-            NotionMCPExtension,
+            extension_class,
             args.action,
             dependencies=dependencies,
             wait_time_seconds=20,
