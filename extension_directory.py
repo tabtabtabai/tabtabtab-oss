@@ -11,6 +11,7 @@ from extensions.calendar_mcp_extension.calendar_mcp_extension import (
 )
 from extensions.fashion_ideas.fashion_ideas import FashionIdeasExtension
 from extension_constants import EXTENSION_DEPENDENCIES, EXTENSION_ID
+from extensions.translation_extension.translation_extension import TranslationExtension
 
 
 EXTENSION_DIRECTORY = [
@@ -50,5 +51,13 @@ EXTENSION_DIRECTORY = [
         description="Fashion ideas extension, copy a text and get fashion ideas.",
         dependencies=[],
         extension_class=FashionIdeasExtension,
+    ),
+    ExtensionDescriptor(
+        extension_id=EXTENSION_ID.translation_extension,
+        description="Translation extension, translate text to any language.",
+        dependencies=[
+            EXTENSION_DEPENDENCIES.anthropic_api_key,
+        ],
+        extension_class=TranslationExtension,
     ),
 ]

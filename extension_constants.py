@@ -24,3 +24,4 @@ class EXTENSION_ID(BaseExtensionID):
     calendar_mcp_extension = auto()
     sample_context_extension = auto()
     fashion_ideas = auto()
+    translation_extension = auto()
