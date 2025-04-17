@@ -136,7 +136,7 @@ class AddressExtension(
     ) -> None:
         """Process image with Anthropic API and send notification with results."""
         try:
-            response = await client.messages.create(
+            response = client.messages.create(
                 model="claude-3-7-sonnet-20250219",
                 max_tokens=2048,
                 temperature=0.7,
