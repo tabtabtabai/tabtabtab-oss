@@ -126,7 +126,7 @@ class SampleExtension(ExtensionInterface):
                             title="Sample",
                             detail=detail_msg,
                             content="",
-                            status=NotificationStatus.PENDING,
+                            status=NotificationStatus.READY,
                         ),
                     )
                 except Exception as e:

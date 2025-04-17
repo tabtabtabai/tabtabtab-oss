@@ -44,4 +44,10 @@ EXTENSION_DIRECTORY = [
         ],
         extension_class=CalendarMCPExtension,
     ),
+    ExtensionDescriptor(
+        extension_id=EXTENSION_ID.rudra_extension,
+        description="Rudra's extension, an extension that does whatever Rudra wants",
+        dependencies=[],
+        extension_class=RudraExtension,
+    ),
 ]

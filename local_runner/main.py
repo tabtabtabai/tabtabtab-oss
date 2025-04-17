@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Type
 import argparse
 import os
 import sys
+import asyncio
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
@@ -31,7 +32,7 @@ load_dotenv()
 class MockSSESender(SSESenderInterface):
     """Mocks the SSE sender to log events instead of sending them."""
 
-    async def send_event(
+    def send_event(
         self, device_id: str, event_name: str, data: Dict[str, Any]
     ) -> None:
         log.info(
@@ -39,7 +40,7 @@ class MockSSESender(SSESenderInterface):
         )
 
     # Add the send_push_notification method required by the ExtensionInterface base
-    async def send_push_notification(
+    def send_push_notification(
         self, device_id: str, notification: Notification
     ) -> None:
         log.info(
@@ -52,7 +53,7 @@ class MockSSESender(SSESenderInterface):
 class MockLLMProcessor(LLMProcessorInterface):
     """Mocks the LLM Processor Interface."""
 
-    async def process(
+    def process(
         self,
         system_prompt: str,
         message: str,
@@ -83,14 +84,17 @@ def get_mock_copy_context():
         "window_info": {
             "bundleIdentifier": "com.google.Chrome",
             "appName": "Google Chrome",
-            "windowTitle": "Example Do∫main",
+            "windowTitle": "Artificial Intelligence - Wikipedia",
             "windowOwner": "Google Chrome",
-            "accessibilityData": {"browser_url": "https://example.com"},
+            "accessibilityData": {"browser_url": "https://en.wikipedia.org/wiki/Artificial_intelligence"},
         },
         "screenshot_provided": True,
         "screenshot_data": b"simulated_screenshot_bytes",
-        "selected_text": f"selected text sample for on_copy",
-        "dependencies": {},
+        "selected_text": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+        "dependencies": {
+            "bitly_token": os.getenv("BITLY_TOKEN"),
+            "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
+        },
     }
 
 
@@ -115,19 +119,10 @@ def get_mock_paste_context():
         "metadata": {
             "window_info": '{"bundleIdentifier":"com.google.Chrome","appName":"Google Chrome"}'
         },
-        "hint": f"Sample hint text for paste",
+        "hint": "Paste the URL summary here",
         "extensions_context": {
-            "another_extension_id": {  # Example context from another extension
-                "contexts": [
-                    {
-                        "description": "some_context_key",
-                        "context": "some_context_value_async",
-                    },
-                    {
-                        "description": "some_other_context_key",
-                        "context": '{"some_nested_key": "some_nested_value_async"}',
-                    },
-                ]
+            "rudra_extension": {
+                "smart_link_result": "## This is a sample summary of the article\n\n[Read more](https://bit.ly/example)"
             }
         },
     }
@@ -192,14 +187,11 @@ async def main(
             },
         }
         try:
-            context_response: Optional[OnContextResponse] = (
-                await extension.on_context_request(
-                    source_extension_id=context_request_context["source_extension_id"],
-                    context_query=context_request_context["context_query"],
-                )
+            context_response: Optional[OnContextResponse] = await extension.on_context_request(
+                source_extension_id=context_request_context["source_extension_id"],
+                context_query=context_request_context["context_query"],
             )
             log.info(f"on_context_request response: {context_response}")
-            # No background task wait needed typically for context requests
         except Exception as e:
             log.error(f"Error calling on_context_request: {e}", exc_info=True)
 
@@ -208,7 +200,7 @@ async def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run local tests for NotionMCPExtension."
+        description="Run local tests for RudraExtension (Smart Link Manager)."
     )
     parser.add_argument(
         "action",
@@ -216,28 +208,23 @@ if __name__ == "__main__":
         help="Specify which action to test: 'copy', 'paste', 'context', or 'all'.",
     )
     args = parser.parse_args()
-    # Using the hardcoded values from the previous version for now:
+
+    # Load required dependencies from environment variables
     dependencies = {
-        EXTENSION_DEPENDENCIES.notion_mcp_url.name: os.getenv("NOTION_MCP_URL"),
-        EXTENSION_DEPENDENCIES.anthropic_api_key.name: os.getenv("ANTHROPIC_API_KEY"),
+        "bitly_token": "03ac018d7c63bb34762ea043e111ed2df7eaaadd",
     }
 
     # Check if required dependencies are present
-    if not dependencies.get(
-        EXTENSION_DEPENDENCIES.notion_mcp_url.name
-    ) or not dependencies.get(EXTENSION_DEPENDENCIES.anthropic_api_key.name):
-        log.error("Missing required dependencies: mcp_url or anthropic_api_key")
+    if not dependencies.get("bitly_token"):
+        log.error("Missing required dependencies: BITLY_TOKEN")
         sys.exit(1)
 
-    # Run the main async function
-    # Pass the action and loaded dependencies
-    from extensions.notion_mcp_extension.notion_mcp_extension import NotionMCPExtension
+    # Run the main function
+    from extensions.rudra_extension.rudra_extension import RudraExtension
 
-    asyncio.run(
-        main(
-            NotionMCPExtension,
-            args.action,
-            dependencies=dependencies,
-            wait_time_seconds=20,
-        )
-    )
+    asyncio.run(main(
+        RudraExtension,
+        args.action,
+        dependencies=dependencies,
+        wait_time_seconds=20,
+    ))
