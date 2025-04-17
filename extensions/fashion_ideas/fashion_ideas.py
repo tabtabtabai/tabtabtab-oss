@@ -5,6 +5,7 @@ import aiohttp
 import json
 import os
 import datetime
+import re
 
 # TabTabTab library imports
 from tabtabtab_lib.extension_interface import (
@@ -35,11 +36,12 @@ class FashionIdeasExtension(ExtensionInterface):
     It saves fashion items you're interested in and organizes them for later viewing.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, llm_processor: LLMProcessorInterface, sse_sender: SSESenderInterface, extension_id: str):
+        super().__init__(sse_sender, llm_processor, extension_id)
         # Create storage directory if it doesn't exist
         os.makedirs(FASHION_STORAGE_DIR, exist_ok=True)
         self.fashion_items = self._load_fashion_items()
+        self.llm_processor = llm_processor
         
     def _load_fashion_items(self) -> List[Dict]:
         """Load saved fashion items from storage"""
@@ -293,6 +295,7 @@ class FashionIdeasExtension(ExtensionInterface):
         }
         
         If the content is not fashion-related, simply return {"is_fashion": false}
+        Only return the JSON response, no other text or comments.
         """
 
         if not self.llm_processor:
@@ -306,13 +309,17 @@ class FashionIdeasExtension(ExtensionInterface):
                 system_prompt=fashion_detection_prompt,
                 message="Analyze this web page content for fashion items:",
                 contexts=[llm_context],
-                model=LLMModel.GEMINI_FLASH,
+                model=LLMModel.GEMINI_PRO,
                 stream=False,
             )
+
+            # Clean the response using regex to ensure we only have valid JSON
+            cleaned_response = re.sub(r'^[^{]*({.*})[^}]*$', r'\1', llm_response.strip())
+            logging.info(f"LLM response (cleaned): {cleaned_response}")
             
             # Parse the JSON response
             try:
-                result = json.loads(llm_response)
+                result = json.loads(cleaned_response)
                 if result.get("is_fashion"):
                     # Save fashion items to collection
                     for item in result.get("items", []):
@@ -338,6 +345,8 @@ class FashionIdeasExtension(ExtensionInterface):
                         self.fashion_items.append(fashion_item)
                     
                     self._save_fashion_items()
+
+                    fashion_Items_as_json = json.dumps(self.fashion_items)
                     
                     # Notify the user
                     items_added = len(result.get("items", []))
@@ -347,7 +356,7 @@ class FashionIdeasExtension(ExtensionInterface):
                             request_id=request_id,
                             title="Fashion Ideas",
                             detail=f"Added {items_added} fashion item(s) to your collection!",
-                            content=f"Successfully saved fashion items from {url}",
+                            content=fashion_Items_as_json,
                             status=NotificationStatus.READY,
                         ),
                     )
@@ -412,9 +421,7 @@ class FashionIdeasExtension(ExtensionInterface):
                 request_id=request_id,
                 title="Fashion Ideas",
                 detail="Fashion item saved",
-                content="Screenshot saved to your fashion collection.\n\n" +
-                        "To add details, use the command:\n" +
-                        f"add_note {fashion_item['id']} Your description here",
+                content=json.dumps(fashion_item),
                 status=NotificationStatus.READY,
             ),
         )
